@@ -1,0 +1,57 @@
+# Code Wiki System Configuration V1
+version: "1.0"
+
+scan_settings:
+  include_paths:
+    - "digital_me/"
+    - "digital_me_platform/"
+    - "scripts/"
+    - "tests/"
+    - "config/"
+  exclude_patterns:
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+    - "**/.venv/**"
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "data/code_wiki/**"  # Don't scan own output
+    - "**/*.egg-info/**"
+    - "**/dist/**"
+    - "**/build/**"
+  incremental_enabled: true  # Reserved for PR #2
+
+output:
+  index_path: "data/code_wiki/repo_index.json"
+  ledger_path: "data/code_wiki/file_ledger.jsonl"  # Reserved for future
+  lifecycle_path: "data/code_wiki/lifecycle_recommendations.json"
+
+# Lifecycle Classifier (PR #2 + V1.2 Hybrid Mode)
+lifecycle_classifier:
+  enabled: true
+  deprecation_days: 90
+  confidence_threshold: 0.7
+
+  # V1.2 Final: Hybrid mode configuration with operational profiles
+  # SAFE DEFAULT: use_llm disabled, enable manually when needed
+  use_llm: false        # Set to true to enable LLM enhancement
+  llm_mode: "hybrid"    # "full" = all files use LLM, "hybrid" = intelligent selection
+  llm_max_files: 80     # Max LLM calls in hybrid mode (daily profile default)
+
+  # Operational Profiles (adjust llm_max_files as needed):
+  # - daily/pre-commit:  50-80   (fast scan, ~1 min, for CI/quick checks) [DEFAULT]
+  # - weekly/deep:       150     (comprehensive review, ~20 min Ollama / ~2-3 min LM Studio)
+  # - audit/exhaustive:  null    (set llm_mode: "full", all files, ~140 min Ollama / ~15 min LM Studio)
+
+# Documentation Generator (PR #3)
+doc_generator:
+  enabled: true
+  output_dir: "docs/architecture"  # Where to write .generated.md files
+  update_readme: true  # Whether to update README.md controlled blocks
+  # Future LLM integration (v1.1+):
+  # llm_provider: "ollama"  # Will use digital_me/core/llm/factory.py
+  # model: "qwen3:8b"
+  # max_tokens: 2000
+
+metadata:
+  project_name: "longter"
+  generated_by: "code-wiki-repo-scanner"
