@@ -842,7 +842,7 @@ Question: Is this file safe to archive/delete?
 | OpenAI | gpt-3.5-turbo | $0.10 | 10-15s | Excellent |
 | OpenAI | gpt-4-turbo | $1.00 | 15-20s | Outstanding |
 | Anthropic | claude-3-haiku | $0.05 | 10-15s | Excellent |
-| Groq | mixtral-8x7b | $0.001 | 5-10s | Very Good |
+| Groq | grok-code-fast-1 | $0.001 | 5-10s | Very Good |
 
 **Recommendation:** Start with Ollama (free, private). If you need speed, try Groq (nearly free, 5× faster).
 
