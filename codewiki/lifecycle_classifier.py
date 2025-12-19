@@ -32,13 +32,21 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # Import LLM client (V1.1+)
+# V2.0: Prefer LIR client for better performance
+try:
+    from .llm_client_lir import LIRLocalLLMClient, HAS_LIR
+    HAS_LIR_CLIENT = HAS_LIR
+except ImportError:
+    HAS_LIR_CLIENT = False
+
 try:
     from .llm_client import LocalLLMClient
-
     HAS_LLM_CLIENT = True
 except ImportError:
     HAS_LLM_CLIENT = False
-    logger.warning("LLM client not available, falling back to rule-based only")
+
+if not HAS_LIR_CLIENT and not HAS_LLM_CLIENT:
+    logger.warning("No LLM client available, falling back to rule-based only")
 
 LifecycleDecision = Literal["keep", "archive", "delete", "review"]
 
@@ -471,36 +479,36 @@ Respond with EXACTLY ONE JSON object, and NOTHING ELSE.
 
                 by_path[entry["path"]] = rec
 
-            # Ensure output order matches input order (for easy diffing V1 vs V1.2)
-            recommendations = [by_path[entry["path"]] for entry in files]
+        # Ensure output order matches input order (for easy diffing V1 vs V1.2)
+        recommendations = [by_path[entry["path"]] for entry in files]
 
-            # Statistics consistency check (architect recommendation - helps catch bugs)
-            attempts = self._llm_stats.get("attempts", 0)
-            successes = self._llm_stats.get("successes", 0)
-            fallbacks = self._llm_stats.get("fallbacks", 0)
-            if attempts != successes + fallbacks:
-                logger.warning(
-                    "LLM stats mismatch: attempts=%s, successes=%s, fallbacks=%s",
-                    attempts,
-                    successes,
-                    fallbacks,
-                )
+        # Statistics consistency check (architect recommendation - helps catch bugs)
+        attempts = self._llm_stats.get("attempts", 0)
+        successes = self._llm_stats.get("successes", 0)
+        fallbacks = self._llm_stats.get("fallbacks", 0)
+        if attempts != successes + fallbacks:
+            logger.warning(
+                "LLM stats mismatch: attempts=%s, successes=%s, fallbacks=%s",
+                attempts,
+                successes,
+                fallbacks,
+            )
 
-            # Metadata with V1.2 stats
-            result_metadata = {
-                "source_index": str(self.index_path),
-                "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "deprecation_days": self.deprecation_days,
-                "confidence_threshold": self.confidence_threshold,
-                "classification_method": "llm-enhanced",
-                "llm_usage": llm_client.get_usage_stats(),
-                "llm_stats": self._llm_stats,
-                "llm_parse": self._llm_parse_stats,
-                "llm_mode": self.llm_mode,
-                "llm_max_files": self.llm_max_files,
-                "llm_calls": llm_calls,
-                **scan_metadata,
-            }
+        # Metadata with V1.2 stats
+        result_metadata = {
+            "source_index": str(self.index_path),
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "deprecation_days": self.deprecation_days,
+            "confidence_threshold": self.confidence_threshold,
+            "classification_method": "llm-enhanced",
+            "llm_usage": llm_client.get_usage_stats(),
+            "llm_stats": self._llm_stats,
+            "llm_parse": self._llm_parse_stats,
+            "llm_mode": self.llm_mode,
+            "llm_max_files": self.llm_max_files,
+            "llm_calls": llm_calls,
+            **scan_metadata,
+        }
 
         return LifecycleResult(
             scan_metadata=result_metadata,
@@ -701,15 +709,45 @@ def run_lifecycle_classification(
         llm_max_files: Max LLM calls in hybrid mode (V1.2)
     """
     # Initialize LLM client if requested (V1.1+)
+    # V2.0: Prefer LIR client for batching, concurrency, and thermal management
+    import os
     llm_client = None
-    if use_llm and HAS_LLM_CLIENT:
-        try:
-            llm_client = LocalLLMClient()
-            if not llm_client.is_available():
-                logger.warning("LLM unavailable, fallback to rules")
+    disable_lir = os.environ.get("CODEWIKI_DISABLE_LIR") == "true"
+    
+    if use_llm:
+        # Try LIR client first (better performance), unless disabled
+        if HAS_LIR_CLIENT and not disable_lir:
+            try:
+                # Map llm_mode to LIR policy
+                lir_policy = "balanced"
+                if llm_mode == "full":
+                    lir_policy = "performance"
+                elif llm_max_files and llm_max_files <= 30:
+                    lir_policy = "silent"
+                
+                llm_client = LIRLocalLLMClient(policy=lir_policy)
+                if llm_client.is_available():
+                    logger.info("Using LIR client (policy=%s)", lir_policy)
+                else:
+                    logger.warning("LIR unavailable, trying legacy client")
+                    llm_client = None
+            except Exception as e:
+                logger.warning("Failed to initialize LIR client: %s", e)
+                llm_client = None
+        
+        # Fallback to legacy client
+        if llm_client is None and HAS_LLM_CLIENT:
+            try:
+                llm_client = LocalLLMClient()
+                if not llm_client.is_available():
+                    logger.warning("Legacy LLM client unavailable, fallback to rules")
+                    use_llm = False
+            except Exception as e:
+                logger.error("Failed to initialize LLM client: %s", e)
                 use_llm = False
-        except Exception as e:
-            logger.error("Failed to initialize LLM client: %s", e)
+        
+        if llm_client is None:
+            logger.warning("No LLM client available, fallback to rules")
             use_llm = False
 
     classifier = LifecycleClassifier(

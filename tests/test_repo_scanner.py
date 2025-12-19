@@ -68,9 +68,9 @@ class TestRepoScanner:
         """Test that scan actually finds files."""
         index = repo_scanner.scan_repository(config)
 
-        # Should find many files in this project
-        assert len(index.files) > 100
-        assert index.scan_metadata["files_scanned"] > 100
+        # Should find core codewiki files (LIR extracted to separate repo)
+        assert len(index.files) > 30  # Codewiki core files only
+        assert index.scan_metadata["files_scanned"] > 30
 
     def test_file_classification(self, config):
         """Test that files are classified correctly."""

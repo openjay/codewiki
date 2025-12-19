@@ -1,5 +1,8 @@
 # Code Wiki + Local LLM Integration Guide
 
+> **Note**: As of v2.0, codewiki uses [LIR (Local Inference Runtime)](https://github.com/openjay/lir) 
+> for local LLM optimization. See [LIR Integration Guide](LIR_INTEGRATION_GUIDE.md) for setup and configuration details.
+
 **Date:** 2025-11-15  
 **Status:** Ready to Implement (v1.1)  
 **Your Setup:** ✅ Ollama running with qwen3:8b on localhost:11434

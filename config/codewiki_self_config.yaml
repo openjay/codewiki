@@ -1,0 +1,52 @@
+# Code Wiki System Configuration - Self-Analysis
+version: "1.0"
+
+scan_settings:
+  include_paths:
+    - "codewiki/"
+    - "tests/"
+    - "config/"
+    - "docs/"
+  exclude_patterns:
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+    - "**/.venv/**"
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "data/code_wiki/**"  # Don't scan own output
+    - "**/*.egg-info/**"
+    - "**/dist/**"
+    - "**/build/**"
+  incremental_enabled: true
+
+output:
+  index_path: "data/code_wiki/repo_index.json"
+  ledger_path: "data/code_wiki/file_ledger.jsonl"
+  lifecycle_path: "data/code_wiki/lifecycle_recommendations.json"
+
+# Lifecycle Classifier
+lifecycle_classifier:
+  enabled: true
+  deprecation_days: 90
+  confidence_threshold: 0.7
+  
+  # LLM enhancement (disabled by default for safety)
+  use_llm: false
+  llm_mode: "hybrid"
+  llm_max_files: 30
+  
+  # V2.0 LIR settings (can be overridden via environment variables)
+  # CODEWIKI_USE_LIR=true/false - Enable/disable LIR
+  # CODEWIKI_LIR_POLICY=silent/balanced/performance - Set LIR policy
+  # CODEWIKI_LLM_MAX_FILES=N - Override max files
+
+# Documentation Generator
+doc_generator:
+  enabled: true
+  output_dir: "docs/architecture"
+  update_readme: true
+
+metadata:
+  project_name: "codewiki"
+  generated_by: "code-wiki-repo-scanner"
+

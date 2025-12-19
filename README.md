@@ -8,6 +8,7 @@ CodeWiki helps you maintain clean codebases by automatically analyzing files, cl
 
 - 🔍 **Repository Scanning**: Comprehensive codebase analysis with metadata extraction
 - 🤖 **LLM-Enhanced Classification**: Uses local LLMs (Ollama + LM Studio) for intelligent file lifecycle analysis
+- ⚡ **Local Inference Optimization**: Powered by [LIR](https://github.com/openjay/lir) for 2.85x faster inference and reduced fan noise
 - 🎯 **Hybrid Mode**: Smart selection of files for LLM analysis (77% fewer LLM calls vs full mode)
 - 🛡️ **Conservative Safety**: Multi-tier confidence thresholds prevent accidental deletions
 - 📊 **Automatic Documentation**: Generates markdown docs with architecture overviews
@@ -66,6 +67,28 @@ CodeWiki supports three operational profiles:
 
 ## Configuration
 
+### Local LLM Optimization
+
+CodeWiki uses [LIR (Local Inference Runtime)](https://github.com/openjay/lir) for optimized local inference:
+
+- **Automatic batching and scheduling** for improved throughput
+- **Thermal-aware throttling** to reduce fan noise
+- **Connection pooling** for faster requests
+- **Multi-provider support** with intelligent failover
+
+**Installation:**
+```bash
+# Install LIR as editable dependency (development)
+pip install -e ../lir
+
+# Or install from GitHub (production)
+pip install git+https://github.com/openjay/lir.git@v0.1.0
+```
+
+**Performance:** 2.85x throughput improvement, 8.9x better latency
+
+See [LIR Integration Guide](docs/LIR_INTEGRATION_GUIDE.md) for detailed setup.
+
 ### LLM Providers
 
 CodeWiki supports dual-provider redundancy:
@@ -92,6 +115,7 @@ Override default configs:
 ```bash
 export CODEWIKI_CONFIG=/path/to/custom/config.yaml
 export CODEWIKI_LLM_PROVIDERS=/path/to/custom/providers.json
+export CODEWIKI_LIR_POLICY=balanced  # silent/balanced/performance
 ```
 
 ## Usage Examples
@@ -163,10 +187,10 @@ python -m codewiki.inspect_lifecycle_result --verbose
 
 ## Documentation
 
-- [Operational Guide](docs/CODE_WIKI_OPERATIONAL_GUIDE.md)
-- [V1.2 Implementation Details](docs/CODE_WIKI_V1.2_HYBRID_COMPLETE.md)
-- [Testing Guide](docs/CODE_WIKI_V1.2_TESTING_GUIDE.md)
-- [Test Results](docs/CODE_WIKI_V1.2_TEST_RESULTS.md)
+- [LIR Integration Guide](docs/LIR_INTEGRATION_GUIDE.md) - Local inference optimization setup
+- [LLM Integration Guide](docs/CODE_WIKI_LLM_INTEGRATION_GUIDE.md) - LLM provider configuration
+- [Operational Guide](docs/CODE_WIKI_OPERATIONAL_GUIDE.md) - Daily usage and best practices
+- [Design Document](docs/CODE_WIKI_DESIGN.md) - Architecture and design decisions
 
 ## Performance
 
@@ -228,7 +252,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Version
 
-**Current**: 1.2.0 (Hybrid Mode with dual-provider LLM support)
+**Current**: 2.0.0 (LIR-powered local inference optimization)
 
 ## Author
 

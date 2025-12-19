@@ -1,0 +1,27 @@
+{
+  "scenario": "legacy",
+  "runtime_seconds": 42.52,
+  "llm": {
+    "total_calls": 5,
+    "successful_calls": 5,
+    "avg_latency_seconds": 8.504,
+    "p95_latency_seconds": 10.205
+  },
+  "quality": {
+    "parse_success_rate": 1.0,
+    "parse_total": 5,
+    "classifications": {
+      "keep": 26,
+      "review": 1
+    }
+  },
+  "thermal": {
+    "initial_avg_cpu": 30.5,
+    "initial_max_cpu": 33.3,
+    "avg_cpu_percent": 22.4,
+    "max_cpu_percent": 33.3,
+    "final_avg_cpu": 14.3,
+    "final_max_cpu": 30.0,
+    "samples_count": 2
+  }
+}

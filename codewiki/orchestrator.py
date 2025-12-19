@@ -205,6 +205,19 @@ def run_lifecycle(config: dict, preview: bool = False) -> int:
     use_llm = bool(lifecycle_cfg.get("use_llm", False))  # V1.1+
     llm_mode = lifecycle_cfg.get("llm_mode", "full")  # V1.2
     llm_max_files = lifecycle_cfg.get("llm_max_files")  # V1.2
+    
+    # V2.0: Environment variable overrides for validation/benchmarking
+    import os
+    if os.environ.get("CODEWIKI_USE_LIR") == "true":
+        use_llm = True  # LIR requires LLM to be enabled
+        llm_mode = "lir"  # Signal to use LIR
+    elif os.environ.get("CODEWIKI_USE_LIR") == "false":
+        # Force legacy client (disable LIR)
+        os.environ["CODEWIKI_DISABLE_LIR"] = "true"
+    if os.environ.get("CODEWIKI_LIR_POLICY"):
+        llm_mode = os.environ.get("CODEWIKI_LIR_POLICY", llm_mode)
+    if os.environ.get("CODEWIKI_LLM_MAX_FILES"):
+        llm_max_files = int(os.environ.get("CODEWIKI_LLM_MAX_FILES"))
 
     # V1.2: Print LLM status
     if use_llm:

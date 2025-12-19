@@ -1,0 +1,27 @@
+Config: use_lir=True, max_files=5
+📋 [code-wiki] Loading repo index from /Users/jay/code/codewiki/data/code_wiki/repo_index.json...
+✅ [code-wiki] Lifecycle recommendations written to /Users/jay/code/codewiki/data/code_wiki/lifecycle_recommendations.json
+   Total files analyzed: 27
+   Recommendations:
+     - keep: 26
+     - review: 1
+
+=== Results ===
+Runtime: 38.97s
+Thermal: initial_max=40.0%, final_max=50.0%
+Classifications: {'keep': 26, 'review': 1}
+Done!
+Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x10ba38440>
+Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x10b7e22d0>, 2562606.950088708)])']
+connector: <aiohttp.connector.TCPConnector object at 0x10ba38590>
+Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x10ba396a0>
+Unclosed connector
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x10b7ef580>, 2562609.886400958)])']
+connector: <aiohttp.connector.TCPConnector object at 0x10b816c10>
+Task was destroyed but it is pending!
+task: <Task pending name='Task-8' coro=<ThermalGovernor._monitor_loop() done, defined at /Users/jay/code/codewiki/lir/governor.py:332> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+Task was destroyed but it is pending!
+task: <Task pending name='Task-9' coro=<LIRClient._process_loop() done, defined at /Users/jay/code/codewiki/lir/client.py:371> wait_for=<Future pending cb=[Task.task_wakeup()]>>

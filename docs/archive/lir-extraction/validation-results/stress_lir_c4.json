@@ -1,0 +1,534 @@
+{
+  "scenario": "lir_c4",
+  "total_calls": 50,
+  "concurrency": 4,
+  "runtime_seconds": 167.03,
+  "warmup_seconds": 21.86,
+  "llm": {
+    "total_calls": 50,
+    "successful_calls": 48,
+    "failed_calls": 2,
+    "avg_latency_seconds": 3.341,
+    "p50_latency_seconds": 0.804,
+    "p95_latency_seconds": 8.041,
+    "p99_latency_seconds": 8.041
+  },
+  "thermal": {
+    "samples_count": 75,
+    "hot_duration_seconds": 0,
+    "warm_duration_seconds": 120.0,
+    "max_cpu_percent": 75.0,
+    "avg_cpu_percent": 14.908
+  },
+  "throughput": {
+    "calls_per_minute": 17.96
+  },
+  "quality": {
+    "parse_success_rate": 0.96,
+    "classifications": {}
+  },
+  "latency_histogram": [
+    7.462,
+    7.462,
+    7.462,
+    7.462,
+    6.505,
+    6.505,
+    6.505,
+    6.505,
+    8.041,
+    8.041,
+    8.041,
+    8.041,
+    7.122,
+    7.122,
+    7.122,
+    7.122,
+    7.328,
+    7.328,
+    7.328,
+    7.328,
+    0.779,
+    0.779,
+    0.779,
+    0.779,
+    0.598,
+    0.598,
+    0.598,
+    0.598,
+    0.882,
+    0.882,
+    0.882,
+    0.882,
+    0.779,
+    0.779,
+    0.779,
+    0.779,
+    0.584,
+    0.584,
+    0.584,
+    0.584,
+    0.629,
+    0.629,
+    0.629,
+    0.629,
+    0.643,
+    0.643,
+    0.643,
+    0.643,
+    0.804,
+    0.804
+  ],
+  "thermal_timeline": [
+    {
+      "timestamp": 0.1,
+      "avg_cpu": 12.4,
+      "max_cpu": 52.8,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 2.2,
+      "avg_cpu": 14.9,
+      "max_cpu": 58.5,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 4.4,
+      "avg_cpu": 14.1,
+      "max_cpu": 60.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 6.5,
+      "avg_cpu": 15.8,
+      "max_cpu": 50.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 8.9,
+      "avg_cpu": 18.5,
+      "max_cpu": 60.0,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 11.0,
+      "avg_cpu": 13.5,
+      "max_cpu": 52.2,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 13.4,
+      "avg_cpu": 12.6,
+      "max_cpu": 54.5,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 15.5,
+      "avg_cpu": 11.8,
+      "max_cpu": 55.1,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 17.9,
+      "avg_cpu": 15.0,
+      "max_cpu": 45.5,
+      "memory_percent": 55.3
+    },
+    {
+      "timestamp": 20.0,
+      "avg_cpu": 12.5,
+      "max_cpu": 53.6,
+      "memory_percent": 55.3
+    },
+    {
+      "timestamp": 22.4,
+      "avg_cpu": 12.9,
+      "max_cpu": 45.5,
+      "memory_percent": 55.3
+    },
+    {
+      "timestamp": 24.5,
+      "avg_cpu": 16.1,
+      "max_cpu": 52.2,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 26.9,
+      "avg_cpu": 17.3,
+      "max_cpu": 66.7,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 29.0,
+      "avg_cpu": 17.2,
+      "max_cpu": 53.5,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 31.5,
+      "avg_cpu": 16.6,
+      "max_cpu": 63.6,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 33.6,
+      "avg_cpu": 14.3,
+      "max_cpu": 53.6,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 36.0,
+      "avg_cpu": 21.3,
+      "max_cpu": 72.7,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 38.1,
+      "avg_cpu": 14.7,
+      "max_cpu": 52.9,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 40.5,
+      "avg_cpu": 11.6,
+      "max_cpu": 54.5,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 42.6,
+      "avg_cpu": 12.2,
+      "max_cpu": 52.2,
+      "memory_percent": 55.8
+    },
+    {
+      "timestamp": 45.0,
+      "avg_cpu": 20.0,
+      "max_cpu": 55.6,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 47.1,
+      "avg_cpu": 10.8,
+      "max_cpu": 51.5,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 49.5,
+      "avg_cpu": 17.7,
+      "max_cpu": 60.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 51.6,
+      "avg_cpu": 12.7,
+      "max_cpu": 55.1,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 54.1,
+      "avg_cpu": 13.7,
+      "max_cpu": 58.3,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 56.2,
+      "avg_cpu": 13.2,
+      "max_cpu": 52.9,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 58.6,
+      "avg_cpu": 12.8,
+      "max_cpu": 60.0,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 60.7,
+      "avg_cpu": 15.5,
+      "max_cpu": 52.9,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 63.1,
+      "avg_cpu": 10.4,
+      "max_cpu": 50.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 65.2,
+      "avg_cpu": 13.7,
+      "max_cpu": 58.6,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 67.6,
+      "avg_cpu": 20.2,
+      "max_cpu": 60.0,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 69.7,
+      "avg_cpu": 14.1,
+      "max_cpu": 55.1,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 72.1,
+      "avg_cpu": 18.0,
+      "max_cpu": 63.6,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 74.2,
+      "avg_cpu": 15.9,
+      "max_cpu": 55.7,
+      "memory_percent": 55.9
+    },
+    {
+      "timestamp": 76.6,
+      "avg_cpu": 13.1,
+      "max_cpu": 50.0,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 78.7,
+      "avg_cpu": 13.8,
+      "max_cpu": 50.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 81.2,
+      "avg_cpu": 13.9,
+      "max_cpu": 60.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 83.3,
+      "avg_cpu": 12.6,
+      "max_cpu": 50.7,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 85.7,
+      "avg_cpu": 13.0,
+      "max_cpu": 60.0,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 87.8,
+      "avg_cpu": 19.3,
+      "max_cpu": 50.7,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 90.2,
+      "avg_cpu": 15.6,
+      "max_cpu": 44.4,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 92.3,
+      "avg_cpu": 13.5,
+      "max_cpu": 50.0,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 94.7,
+      "avg_cpu": 14.1,
+      "max_cpu": 50.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 96.8,
+      "avg_cpu": 20.0,
+      "max_cpu": 54.3,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 99.3,
+      "avg_cpu": 13.6,
+      "max_cpu": 40.0,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 101.4,
+      "avg_cpu": 13.6,
+      "max_cpu": 54.3,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 103.8,
+      "avg_cpu": 14.7,
+      "max_cpu": 54.5,
+      "memory_percent": 55.8
+    },
+    {
+      "timestamp": 105.9,
+      "avg_cpu": 12.3,
+      "max_cpu": 52.2,
+      "memory_percent": 55.8
+    },
+    {
+      "timestamp": 108.3,
+      "avg_cpu": 11.7,
+      "max_cpu": 50.0,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 110.4,
+      "avg_cpu": 13.3,
+      "max_cpu": 54.3,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 112.8,
+      "avg_cpu": 10.5,
+      "max_cpu": 58.3,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 114.9,
+      "avg_cpu": 15.0,
+      "max_cpu": 53.6,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 117.3,
+      "avg_cpu": 13.0,
+      "max_cpu": 54.5,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 119.4,
+      "avg_cpu": 15.2,
+      "max_cpu": 55.7,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 121.8,
+      "avg_cpu": 14.3,
+      "max_cpu": 50.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 123.9,
+      "avg_cpu": 12.5,
+      "max_cpu": 52.9,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 126.4,
+      "avg_cpu": 15.3,
+      "max_cpu": 60.0,
+      "memory_percent": 55.4
+    },
+    {
+      "timestamp": 128.5,
+      "avg_cpu": 15.0,
+      "max_cpu": 52.9,
+      "memory_percent": 55.6
+    },
+    {
+      "timestamp": 130.9,
+      "avg_cpu": 25.6,
+      "max_cpu": 75.0,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 133.0,
+      "avg_cpu": 13.1,
+      "max_cpu": 52.2,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 135.4,
+      "avg_cpu": 12.0,
+      "max_cpu": 50.0,
+      "memory_percent": 55.8
+    },
+    {
+      "timestamp": 137.5,
+      "avg_cpu": 16.2,
+      "max_cpu": 53.6,
+      "memory_percent": 55.7
+    },
+    {
+      "timestamp": 139.9,
+      "avg_cpu": 13.3,
+      "max_cpu": 55.6,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 142.0,
+      "avg_cpu": 13.2,
+      "max_cpu": 46.3,
+      "memory_percent": 55.5
+    },
+    {
+      "timestamp": 144.4,
+      "avg_cpu": 19.5,
+      "max_cpu": 54.5,
+      "memory_percent": 55.8
+    },
+    {
+      "timestamp": 146.5,
+      "avg_cpu": 16.4,
+      "max_cpu": 56.5,
+      "memory_percent": 56.9
+    },
+    {
+      "timestamp": 149.0,
+      "avg_cpu": 14.0,
+      "max_cpu": 60.0,
+      "memory_percent": 55.1
+    },
+    {
+      "timestamp": 151.1,
+      "avg_cpu": 15.7,
+      "max_cpu": 53.6,
+      "memory_percent": 54.4
+    },
+    {
+      "timestamp": 153.5,
+      "avg_cpu": 22.7,
+      "max_cpu": 63.6,
+      "memory_percent": 53.9
+    },
+    {
+      "timestamp": 155.6,
+      "avg_cpu": 15.0,
+      "max_cpu": 52.2,
+      "memory_percent": 53.1
+    },
+    {
+      "timestamp": 158.0,
+      "avg_cpu": 17.3,
+      "max_cpu": 63.6,
+      "memory_percent": 52.5
+    },
+    {
+      "timestamp": 160.1,
+      "avg_cpu": 11.0,
+      "max_cpu": 53.6,
+      "memory_percent": 52.4
+    },
+    {
+      "timestamp": 162.5,
+      "avg_cpu": 16.0,
+      "max_cpu": 50.0,
+      "memory_percent": 52.5
+    },
+    {
+      "timestamp": 164.6,
+      "avg_cpu": 20.7,
+      "max_cpu": 55.1,
+      "memory_percent": 52.4
+    },
+    {
+      "timestamp": 167.0,
+      "avg_cpu": 13.5,
+      "max_cpu": 60.0,
+      "memory_percent": 52.3
+    }
+  ]
+}

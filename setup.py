@@ -2,9 +2,14 @@ from setuptools import find_packages, setup
 
 setup(
     name="codewiki",
-    version="1.2.0",
-    packages=find_packages(),
-    install_requires=["pyyaml>=6.0", "requests>=2.28"],
+    version="2.0.0",
+    packages=find_packages(exclude=["tests", "tests.*"]),
+    install_requires=[
+        "pyyaml>=6.0",
+        "requests>=2.28",
+        # LIR dependencies (optional, for LIR integration)
+        # Install LIR separately: pip install -e ../lir
+    ],
     entry_points={"console_scripts": ["codewiki=codewiki.cli:main"]},
 )
 

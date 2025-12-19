@@ -1,0 +1,27 @@
+{
+  "scenario": "lir_balanced",
+  "runtime_seconds": 38.97,
+  "llm": {
+    "total_calls": 5,
+    "successful_calls": 5,
+    "avg_latency_seconds": 7.794,
+    "p95_latency_seconds": 9.352
+  },
+  "quality": {
+    "parse_success_rate": 1.0,
+    "parse_total": 5,
+    "classifications": {
+      "keep": 26,
+      "review": 1
+    }
+  },
+  "thermal": {
+    "initial_avg_cpu": 0.0,
+    "initial_max_cpu": 40.0,
+    "avg_cpu_percent": 7.7,
+    "max_cpu_percent": 50.0,
+    "final_avg_cpu": 15.3,
+    "final_max_cpu": 50.0,
+    "samples_count": 2
+  }
+}
