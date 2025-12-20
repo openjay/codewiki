@@ -10,7 +10,7 @@
       "cost_per_1k_tokens": 0.0,
       "priority": 1,
       "enabled": true,
-      "notes": "Primary provider - qwen3:8b validated. Temperature controlled in code (0.1)"
+      "notes": "Primary provider - Ollama qwen3:8b (instruct model, fast). Temperature controlled in code (0.1)"
     },
     {
       "provider": "lm_studio",
@@ -22,7 +22,7 @@
       "cost_per_1k_tokens": 0.0,
       "priority": 2,
       "enabled": true,
-      "notes": "Backup provider (faster but slightly less accurate). Temperature controlled in code (0.1)"
+      "notes": "Backup provider - LM Studio (instruct model). Temperature controlled in code (0.1)"
     },
     {
       "provider": "openai",

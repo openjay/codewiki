@@ -151,9 +151,10 @@ class LifecycleClassifier:
         Attempt to extract JSON from LLM output with multiple strategies.
 
         Strategy chain:
-        1. Direct json.loads
-        2. Strip code fences, then loads
-        3. Find first '{' and last '}', extract and parse
+        1. Strip <think>...</think> tags (for reasoning models like qwen3-thinking)
+        2. Direct json.loads
+        3. Strip code fences, then loads
+        4. Find first '{' and last '}', extract and parse
 
         Returns:
             Parsed JSON dict or None on failure (triggers rule-based fallback)
@@ -161,6 +162,18 @@ class LifecycleClassifier:
         cls_text = raw_text.strip()
         if not cls_text:
             return None
+
+        # 0) Strip <think> tags for reasoning models (qwen3-4b-thinking, etc.)
+        if "<think>" in cls_text or "</think>" in cls_text:
+            # Find content after </think> tag
+            think_end = cls_text.rfind("</think>")
+            if think_end != -1:
+                cls_text = cls_text[think_end + 8:].strip()  # 8 = len("</think>")
+            else:
+                # If only opening <think> tag, remove everything before it
+                think_start = cls_text.find("<think>")
+                if think_start != -1:
+                    cls_text = cls_text[:think_start].strip()
 
         # 1) Direct attempt
         try:
@@ -267,7 +280,7 @@ class LifecycleClassifier:
         mtime = entry.get("mtime", 0)
         age_days = self._compute_age_days(mtime)
 
-        # Build enhanced prompts (V1.2)
+        # Build enhanced prompts (V1.2 + reasoning model support)
         system_prompt = (
             "You are a senior software engineer specializing in repository hygiene "
             "and lifecycle management. Your task is to classify files in a large codebase.\n\n"
@@ -280,6 +293,8 @@ class LifecycleClassifier:
             "5. 'confidence' MUST be a float between 0.0 and 1.0.\n"
             "6. 'reasons' MUST be a short list of human-readable strings.\n"
             "7. If you are uncertain, prefer 'review' with a medium confidence.\n"
+            "8. If you need to think, use <think> tags but keep thinking BRIEF (under 200 words).\n"
+            "9. ALWAYS output the JSON object AFTER </think> tag.\n"
         )
 
         user_prompt = f"""
@@ -303,7 +318,7 @@ Important considerations:
 - For very old files beyond the deprecation threshold, 'review' or 'archive' are preferred.
 - For recently modified core code files, 'keep' is usually correct.
 
-Respond with EXACTLY ONE JSON object, and NOTHING ELSE.
+Think BRIEFLY (max 3-4 sentences), then respond with EXACTLY ONE JSON object.
 """
 
         # Call LLM

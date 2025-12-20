@@ -290,7 +290,7 @@ class LocalLLMClient:
                 "model": self.active.model or "qwen3:8b",
                 "messages": messages,
                 "temperature": 0.1,  # Temperature controlled in code, not config (source of truth)
-                "max_tokens": 500,  # Max tokens for JSON response
+                "max_tokens": 1000,  # Sufficient for instruct models; use 2500+ for reasoning models
             }
 
             resp = requests.post(url, json=payload, timeout=60)

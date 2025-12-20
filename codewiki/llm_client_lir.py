@@ -123,7 +123,7 @@ class LIRLocalLLMClient:
         prompt: str,
         system_prompt: Optional[str] = None,
         temperature: float = 0.1,
-        max_tokens: int = 500,
+        max_tokens: int = 1000,
     ) -> Optional[str]:
         """
         Generate text using LIR.
@@ -134,7 +134,7 @@ class LIRLocalLLMClient:
             prompt: User prompt
             system_prompt: Optional system context
             temperature: Sampling temperature (default: 0.1)
-            max_tokens: Maximum tokens to generate (default: 500)
+            max_tokens: Maximum tokens to generate (default: 1000, sufficient for instruct models; use 2500+ for reasoning models)
             
         Returns:
             Generated text or None if failed
