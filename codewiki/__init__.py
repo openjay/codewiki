@@ -7,10 +7,10 @@ A standalone tool for:
 - Automated documentation generation
 - LLM-powered code analysis (Ollama + LM Studio)
 
-Version: 1.2.0
+Version: 2.1.0
 """
 
-__version__ = "1.2.0"
+__version__ = "2.1.0"
 __author__ = "Jay"
 __description__ = "LLM-enhanced code lifecycle analysis and documentation generator"
 
