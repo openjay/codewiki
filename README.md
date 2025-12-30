@@ -7,19 +7,23 @@ CodeWiki helps you maintain clean codebases by automatically analyzing files, cl
 ## Features
 
 - 🔍 **Repository Scanning**: Comprehensive codebase analysis with metadata extraction
-- 🤖 **LLM-Enhanced Classification**: Uses local LLMs (Ollama + LM Studio) for intelligent file lifecycle analysis
-- ⚡ **Local Inference Optimization**: Powered by [LIR](https://github.com/openjay/lir) for 2.85x faster inference and reduced fan noise
-- 🎯 **Hybrid Mode**: Smart selection of files for LLM analysis (77% fewer LLM calls vs full mode)
-- 🛡️ **Conservative Safety**: Multi-tier confidence thresholds prevent accidental deletions
+- 🤖 **Multi-Provider LLM Support**: Use any LLM provider - local or cloud, with flexible configuration
+  - Local: Ollama, LM Studio (100% private, no API keys)
+  - Cloud: OpenAI, Anthropic, Groq, or any OpenAI-compatible API (opt-in)
+  - Auto-detects API format (Ollama vs OpenAI-compatible)
+  - Priority-based failover for reliability
+- ⚡ **Local Inference Optimization**: Powered by [LIR](https://github.com/openjay/lir) for 2.85x faster inference
+- 🧠 **Reasoning Model Support**: Handles advanced models with `<think>` tag parsing
+- 🎯 **Hybrid Mode**: Smart file selection (77% fewer LLM calls vs full mode)
+- 🛡️ **Privacy-First Design**: 100% local by default, cloud providers disabled until explicitly enabled
 - 📊 **Automatic Documentation**: Generates markdown docs with architecture overviews
-- 🔄 **Dual-Provider Support**: Ollama (accuracy) + LM Studio (speed) with automatic failover
 - 📈 **Operational Profiles**: Daily/Weekly/Audit modes for different use cases
 
 ## Installation
 
 ```bash
 # Install from source
-git clone https://github.com/[username]/codewiki.git
+git clone https://github.com/openjay/codewiki.git
 cd codewiki
 pip install -e .
 
@@ -65,6 +69,48 @@ CodeWiki supports three operational profiles:
 - **Use case**: Major refactoring, full audit
 - **Config**: `llm_mode: "full"`, `llm_max_files: null`
 
+## Multi-Provider Configuration
+
+CodeWiki supports multiple LLM providers through `config/llm_providers.json`:
+
+### Default Configuration (Privacy-First)
+
+- **Ollama** (Priority 1, Enabled): 100% local, no API key needed
+- **LM Studio** (Priority 2, Enabled): 100% local, OpenAI-compatible
+- **Cloud Providers** (Priority 99, Disabled): OpenAI, Anthropic, Groq
+
+Your code **never leaves your machine** unless you explicitly enable cloud providers.
+
+### Adding Cloud Providers
+
+1. Edit `config/llm_providers.json`
+2. Find the provider (e.g., `openai`)
+3. Set `enabled: true` and configure `api_key`
+4. Optionally set environment variable:
+
+```bash
+export OPENAI_API_KEY="sk-proj-..."
+codewiki --mode lifecycle
+```
+
+### Custom Endpoints
+
+CodeWiki supports **any OpenAI-compatible API**:
+
+```json
+{
+  "provider": "my_custom_llm",
+  "api_type": "openai",
+  "base_url": "http://localhost:8000/v1",
+  "api_key": "${CUSTOM_API_KEY}",
+  "models": ["your-model"],
+  "priority": 1,
+  "enabled": true
+}
+```
+
+See [Multi-Provider Architecture](docs/MULTI_PROVIDER_ARCHITECTURE.md) for details.
+
 ## Configuration
 
 ### Local LLM Optimization
@@ -91,18 +137,29 @@ See [LIR Integration Guide](docs/LIR_INTEGRATION_GUIDE.md) for detailed setup.
 
 ### LLM Providers
 
-CodeWiki supports dual-provider redundancy:
+CodeWiki supports **6+ LLM providers** with automatic failover:
 
+#### Local Providers (Default, Free, Private)
 1. **Ollama** (Primary): More accurate (85% parse success)
    ```bash
    ollama serve
-   # Ensure qwen3:8b is installed: ollama pull qwen3:8b
+   ollama pull qwen3:8b
    ```
 
 2. **LM Studio** (Backup): Faster (~10x speed)
    - Start LM Studio GUI
    - Load any chat model
    - Automatic failover if Ollama unavailable
+
+#### Cloud Providers (Optional, Disabled by Default)
+- **OpenAI** (gpt-4, gpt-3.5-turbo)
+- **Anthropic** (claude-3-opus, claude-3-sonnet)
+- **Groq** (mixtral-8x7b, llama2-70b)
+- **Custom** (any OpenAI-compatible endpoint)
+
+All cloud providers are **disabled by default** for privacy.
+
+Enable via `config/llm_providers.json` (see Multi-Provider Configuration section).
 
 ### Configuration Files
 
@@ -180,6 +237,18 @@ python -m codewiki.inspect_lifecycle_result --verbose
          ├─────▶ Lifecycle Classifier
          │       ├─ Rule-based (fast)
          │       └─ LLM-enhanced (hybrid)
+         │             │
+         │             ▼
+         │       ┌─────────────────┐
+         │       │ Multi-Provider  │
+         │       │   LLM Client    │
+         │       │  ┌────────────┐ │
+         │       │  │ Ollama     │ │
+         │       │  │ LM Studio  │ │
+         │       │  │ OpenAI     │ │
+         │       │  │ Custom...  │ │
+         │       │  └────────────┘ │
+         │       └─────────────────┘
          │
          └─────▶ Doc Generator
                  └─ Markdown output
@@ -187,8 +256,10 @@ python -m codewiki.inspect_lifecycle_result --verbose
 
 ## Documentation
 
+- [Multi-Provider Architecture](docs/MULTI_PROVIDER_ARCHITECTURE.md) - Flexible LLM provider system
 - [LIR Integration Guide](docs/LIR_INTEGRATION_GUIDE.md) - Local inference optimization setup
 - [LLM Integration Guide](docs/CODE_WIKI_LLM_INTEGRATION_GUIDE.md) - LLM provider configuration
+- [Reasoning Model Fix](docs/REASONING_MODEL_FIX.md) - Support for reasoning models
 - [Operational Guide](docs/CODE_WIKI_OPERATIONAL_GUIDE.md) - Daily usage and best practices
 - [Design Document](docs/CODE_WIKI_DESIGN.md) - Architecture and design decisions
 
@@ -215,7 +286,7 @@ Tested on 664-file Python codebase:
 
 ```bash
 # Clone repository
-git clone https://github.com/[username]/codewiki.git
+git clone https://github.com/openjay/codewiki.git
 cd codewiki
 
 # Create virtual environment
@@ -248,11 +319,35 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Related Projects
 
-- [Digital Me](https://github.com/[username]/longter) - Autonomous multi-agent AI platform (where CodeWiki was originally developed)
+- [Digital Me](https://github.com/openjay/longter) - Autonomous multi-agent AI platform (where CodeWiki was originally developed)
 
 ## Version
 
-**Current**: 2.0.0 (LIR-powered local inference optimization)
+**Current**: 2.1.0 (Multi-Provider Architecture)
+
+### Changelog
+
+- **v2.1.0** (2025-12-30)
+  - Multi-provider architecture (6+ providers)
+  - OpenAI-compatible API support
+  - Automatic API type detection
+  - Reasoning model support (`<think>` tag parsing)
+  - Flexible authentication (environment variables)
+  - Privacy-first defaults maintained
+  
+- **v2.0.0** (2025-12-20)
+  - LIR-powered local inference optimization (2.85x speedup)
+  - Thermal-aware throttling
+  - Connection pooling
+  
+- **v1.2.0** (2025-11-20)
+  - Hybrid mode implementation
+  - LLM integration
+  
+- **v1.0.0** (2025-11-15)
+  - Initial release
+  - Rule-based classification
+  - Documentation generation
 
 ## Author
 
