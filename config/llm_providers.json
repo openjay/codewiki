@@ -2,67 +2,107 @@
   "providers": [
     {
       "provider": "ollama",
+      "api_type": "ollama",
       "base_url": "http://localhost:11434",
-      "models": ["qwen3:8b"],
+      "models": [
+        "qwen3:8b"
+      ],
       "max_tokens": 4096,
       "timeout_seconds": 30,
       "max_retries": 3,
       "cost_per_1k_tokens": 0.0,
       "priority": 1,
       "enabled": true,
-      "notes": "Primary provider - Ollama qwen3:8b (instruct model, fast). Temperature controlled in code (0.1)"
+      "notes": "PRIMARY (FREE) - Local Ollama inference, no API key needed. Privacy-first default."
     },
     {
       "provider": "lm_studio",
+      "api_type": "openai",
       "base_url": "http://localhost:1234",
-      "models": ["local-model"],
+      "models": [
+        "local-model"
+      ],
       "max_tokens": 8192,
       "timeout_seconds": 30,
       "max_retries": 3,
       "cost_per_1k_tokens": 0.0,
       "priority": 2,
       "enabled": true,
-      "notes": "Backup provider - LM Studio (instruct model). Temperature controlled in code (0.1)"
+      "notes": "BACKUP (FREE) - Local LM Studio, OpenAI-compatible API. No API key needed."
+    },
+    {
+      "provider": "custom_cloud",
+      "api_type": "openai",
+      "base_url": "http://localhost:8000/v1",
+      "api_key": "${CUSTOM_CLOUD_API_KEY}",
+      "models": [
+        "your-model-name"
+      ],
+      "max_tokens": 4096,
+      "timeout_seconds": 60,
+      "max_retries": 3,
+      "cost_per_1k_tokens": 0.0,
+      "priority": 98,
+      "enabled": false,
+      "notes": "OPTIONAL - Custom cloud LLM endpoint. Set CUSTOM_CLOUD_API_KEY environment variable. Disabled by default."
     },
     {
       "provider": "openai",
+      "api_type": "openai",
       "api_key": "${OPENAI_API_KEY}",
-      "models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+      "base_url": "https://api.openai.com",
+      "models": [
+        "gpt-4",
+        "gpt-4-turbo",
+        "gpt-3.5-turbo"
+      ],
       "max_tokens": 4096,
-      "temperature": 0.7,
       "timeout_seconds": 60,
       "max_retries": 3,
       "cost_per_1k_tokens": 0.03,
-      "priority": 3,
-      "enabled": false
+      "priority": 99,
+      "enabled": false,
+      "notes": "OPTIONAL (PAID) - Real OpenAI API. Requires API key and costs money. Disabled by default."
     },
     {
       "provider": "anthropic",
+      "api_type": "openai",
       "api_key": "${ANTHROPIC_API_KEY}",
-      "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+      "base_url": "https://api.anthropic.com",
+      "models": [
+        "claude-3-opus",
+        "claude-3-sonnet",
+        "claude-3-haiku"
+      ],
       "max_tokens": 4096,
-      "temperature": 0.7,
       "timeout_seconds": 60,
       "max_retries": 3,
       "cost_per_1k_tokens": 0.015,
-      "priority": 4,
-      "enabled": false
+      "priority": 99,
+      "enabled": false,
+      "notes": "OPTIONAL (PAID) - Anthropic Claude API. Requires API key and costs money. Disabled by default."
     },
     {
       "provider": "groq",
+      "api_type": "openai",
       "api_key": "${GROQ_API_KEY}",
-      "models": ["mixtral-8x7b", "llama2-70b"],
+      "base_url": "https://api.groq.com/openai",
+      "models": [
+        "mixtral-8x7b-32768",
+        "llama2-70b-4096"
+      ],
       "max_tokens": 4096,
-      "temperature": 0.7,
       "timeout_seconds": 30,
       "max_retries": 3,
-      "cost_per_1k_tokens": 0.0002,
-      "priority": 5,
-      "enabled": false
+      "cost_per_1k_tokens": 0.0,
+      "priority": 99,
+      "enabled": false,
+      "notes": "OPTIONAL (FREE) - Groq fast inference API. Requires API key but free tier available. Disabled by default."
     }
   ],
-  "default_routing_strategy": "cost_optimized",
+  "default_routing_strategy": "priority",
   "health_check_interval_seconds": 60,
   "max_consecutive_failures": 3,
-  "failure_recovery_time_seconds": 300
+  "failure_recovery_time_seconds": 300,
+  "_readme": "Privacy Notice: CodeWiki runs 100% locally by default. Your code never leaves your machine unless you explicitly enable and configure a cloud provider (priority 99 providers). All cloud providers are disabled by default."
 }

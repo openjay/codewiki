@@ -49,24 +49,37 @@ class LIRLocalLLMClient:
         self,
         policy: str = "balanced",
         config_path: Optional[Path] = None,
-        ollama_url: str = "http://localhost:11434",
-        lmstudio_url: str = "http://localhost:1234",
-        ollama_model: str = "qwen3:8b",
-        lmstudio_model: str = "local-model",
+        ollama_url: Optional[str] = None,
+        lmstudio_url: Optional[str] = None,
+        ollama_model: Optional[str] = None,
+        lmstudio_model: Optional[str] = None,
     ):
         """
         Initialize LIR-based LLM client.
         
         Args:
             policy: LIR policy ("silent", "balanced", "performance")
-            config_path: Optional path to LIR config
-            ollama_url: Ollama server URL
-            lmstudio_url: LM Studio server URL
-            ollama_model: Ollama model name
-            lmstudio_model: LM Studio model name
+            config_path: Optional path to LIR config (or llm_providers.json)
+            ollama_url: Ollama server URL (auto-detected from config if None)
+            lmstudio_url: LM Studio server URL (auto-detected from config if None)
+            ollama_model: Ollama model name (auto-detected from config if None)
+            lmstudio_model: LM Studio model name (auto-detected from config if None)
         """
         self.policy = policy
         self._client: Optional[SyncLIRClient] = None
+        
+        # Load provider config if not explicitly provided
+        if not all([ollama_url, lmstudio_url, ollama_model, lmstudio_model]):
+            providers_config = self._load_providers_config()
+            # Default to lmstudio config for both slots if ollama is disabled
+            lmstudio_url_val = providers_config.get("lmstudio_url", "http://localhost:1234")
+            lmstudio_model_val = providers_config.get("lmstudio_model", "local-model")
+            
+            ollama_url = ollama_url or providers_config.get("ollama_url", lmstudio_url_val)
+            lmstudio_url = lmstudio_url or lmstudio_url_val
+            ollama_model = ollama_model or providers_config.get("ollama_model", lmstudio_model_val)
+            lmstudio_model = lmstudio_model or lmstudio_model_val
+        
         self._config = {
             "ollama_url": ollama_url,
             "lmstudio_url": lmstudio_url,
@@ -81,6 +94,64 @@ class LIRLocalLLMClient:
         
         # Initialize client
         self._init_client()
+    
+    def _load_providers_config(self) -> Dict[str, str]:
+        """
+        Load provider URLs and models from llm_providers.json.
+        
+        Loads first two enabled providers (by priority) and maps them to
+        LIR's ollama/lmstudio slots for backward compatibility.
+        
+        Returns dict with ollama_url, lmstudio_url, ollama_model, lmstudio_model.
+        """
+        import json
+        from pathlib import Path
+        
+        config_path = Path("config/llm_providers.json")
+        if not config_path.exists():
+            logger.warning("Provider config not found: %s", config_path)
+            return {}
+        
+        try:
+            data = json.loads(config_path.read_text(encoding="utf-8"))
+            providers = data.get("providers", [])
+            
+            # Get all enabled providers sorted by priority
+            enabled_providers = [
+                p for p in providers 
+                if p.get("enabled", True)
+            ]
+            sorted_providers = sorted(enabled_providers, key=lambda p: p.get("priority", 999))
+            
+            # Take first two providers (highest priority)
+            # Map them to LIR's ollama (priority 1) and lmstudio (priority 2) slots
+            result = {}
+            
+            if len(sorted_providers) >= 1:
+                p1 = sorted_providers[0]
+                result["ollama_url"] = p1.get("base_url", "http://localhost:11434")
+                result["ollama_model"] = (
+                    p1.get("models", ["qwen3:8b"])[0]
+                    if isinstance(p1.get("models"), list)
+                    else p1.get("model", "qwen3:8b")
+                )
+                logger.info(f"LIR slot 1 (ollama): {p1.get('provider')} @ {result['ollama_url']}")
+            
+            if len(sorted_providers) >= 2:
+                p2 = sorted_providers[1]
+                result["lmstudio_url"] = p2.get("base_url", "http://localhost:1234")
+                result["lmstudio_model"] = (
+                    p2.get("models", ["local-model"])[0]
+                    if isinstance(p2.get("models"), list)
+                    else p2.get("model", "local-model")
+                )
+                logger.info(f"LIR slot 2 (lmstudio): {p2.get('provider')} @ {result['lmstudio_url']}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error("Failed to load provider config: %s", e)
+            return {}
     
     def _init_client(self) -> None:
         """Initialize LIR client"""
@@ -97,7 +168,8 @@ class LIRLocalLLMClient:
                 ollama_model=self._config["ollama_model"],
                 lmstudio_model=self._config["lmstudio_model"],
             )
-            logger.info("LIR client initialized (policy=%s)", self.policy)
+            logger.info("LIR client initialized (policy=%s, lmstudio=%s, ollama=%s)", 
+                       self.policy, self._config["lmstudio_url"], self._config["ollama_url"])
         except Exception as e:
             logger.error("Failed to initialize LIR client: %s", e)
             self._client = None

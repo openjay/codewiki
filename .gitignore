@@ -36,3 +36,10 @@ data/
 .DS_Store
 Thumbs.db
 
+# Test results and artifacts
+test_results/
+
+# Local configuration overrides
+config/*_local.json
+*_LOCAL_*.md
+
