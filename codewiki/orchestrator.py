@@ -205,7 +205,7 @@ def run_lifecycle(config: dict, preview: bool = False) -> int:
     use_llm = bool(lifecycle_cfg.get("use_llm", False))  # V1.1+
     llm_mode = lifecycle_cfg.get("llm_mode", "full")  # V1.2
     llm_max_files = lifecycle_cfg.get("llm_max_files")  # V1.2
-    
+
     # V2.0: Environment variable overrides for validation/benchmarking
     import os
     if os.environ.get("CODEWIKI_USE_LIR") == "true":

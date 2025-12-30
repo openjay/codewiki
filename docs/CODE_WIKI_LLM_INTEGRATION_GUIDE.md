@@ -1,11 +1,37 @@
-# Code Wiki + Local LLM Integration Guide
+# Code Wiki + LLM Integration Guide
 
-> **Note**: As of v2.0, codewiki uses [LIR (Local Inference Runtime)](https://github.com/openjay/lir) 
-> for local LLM optimization. See [LIR Integration Guide](LIR_INTEGRATION_GUIDE.md) for setup and configuration details.
+> **Privacy Notice**: CodeWiki runs 100% locally by default. Your code never leaves your machine unless you explicitly enable and configure a cloud provider. All cloud providers are disabled by default.
 
-**Date:** 2025-11-15  
-**Status:** Ready to Implement (v1.1)  
-**Your Setup:** ✅ Ollama running with qwen3:8b on localhost:11434
+> **Note**: As of v2.0, codewiki supports multiple LLM providers through a flexible, configuration-driven architecture. Local providers (Ollama, LM Studio) are prioritized by default. See [LIR Integration Guide](LIR_INTEGRATION_GUIDE.md) for performance optimization.
+
+**Date:** 2025-12-30  
+**Status:** Production Ready (v2.0 - Multi-Provider Architecture)  
+**Supported Providers:** Ollama, LM Studio, OpenAI, Anthropic, Groq, and any OpenAI-compatible API
+
+---
+
+## Multi-Provider Architecture (v2.0)
+
+### Overview
+
+CodeWiki now supports **any OpenAI-compatible LLM provider** through a unified, configuration-driven architecture:
+
+- **Local-First**: Ollama and LM Studio prioritized by default (100% private, no API keys)
+- **Cloud-Optional**: OpenAI, Anthropic, Groq, and custom endpoints available (opt-in)
+- **Auto-Detection**: Automatically detects API format (Ollama vs OpenAI-compatible)
+- **Priority-Based Failover**: Seamless fallback between providers
+- **Authentication**: Supports API keys and environment variable expansion
+
+### Supported Providers
+
+| Provider | API Type | Cost | Privacy | Default Status |
+|----------|----------|------|---------|----------------|
+| **Ollama** | Ollama | FREE | 100% Local | ✅ Enabled (Priority 1) |
+| **LM Studio** | OpenAI | FREE | 100% Local | ✅ Enabled (Priority 2) |
+| **Custom Cloud** | OpenAI | Varies | Depends | ⚙️ User-configured |
+| **OpenAI** | OpenAI | Paid | Cloud | ❌ Disabled (Priority 99) |
+| **Anthropic** | OpenAI | Paid | Cloud | ❌ Disabled (Priority 99) |
+| **Groq** | OpenAI | Free Tier | Cloud | ❌ Disabled (Priority 99) |
 
 ---
 
@@ -49,6 +75,125 @@ graph TD
     
     F --> J[Template-Based<br/>Output]
 ```
+
+---
+
+## Provider Configuration
+
+### Configuration File
+
+Providers are configured in `config/llm_providers.json`:
+
+```json
+{
+  "providers": [
+    {
+      "provider": "ollama",
+      "api_type": "ollama",
+      "base_url": "http://localhost:11434",
+      "models": ["qwen3:8b"],
+      "priority": 1,
+      "enabled": true,
+      "notes": "PRIMARY (FREE) - Local Ollama inference, no API key needed"
+    },
+    {
+      "provider": "lm_studio",
+      "api_type": "openai",
+      "base_url": "http://localhost:1234",
+      "models": ["local-model"],
+      "priority": 2,
+      "enabled": true,
+      "notes": "BACKUP 1 (FREE) - Local LM Studio, OpenAI-compatible"
+    },
+    {
+      "provider": "openai",
+      "api_type": "openai",
+      "api_key": "${OPENAI_API_KEY}",
+      "base_url": "https://api.openai.com",
+      "models": ["gpt-4", "gpt-3.5-turbo"],
+      "priority": 99,
+      "enabled": false,
+      "notes": "OPTIONAL (PAID) - Real OpenAI API. Disabled by default."
+    }
+  ]
+}
+```
+
+### Configuration Fields
+
+| Field | Required | Description | Example |
+|-------|----------|-------------|---------|
+| `provider` | Yes | Provider name (for logging) | `"ollama"`, `"openai"`, `"custom"` |
+| `api_type` | No | API format (`"ollama"` or `"openai"`). Auto-detected if omitted. | `"openai"` |
+| `base_url` | Yes | Provider endpoint URL | `"http://localhost:11434"` |
+| `models` | Yes | List of available models | `["qwen3:8b"]` |
+| `api_key` | No | API key or `${ENV_VAR}` for expansion | `"${OPENAI_API_KEY}"` |
+| `priority` | Yes | Selection priority (lower = higher priority) | `1` |
+| `enabled` | Yes | Enable/disable provider | `true` |
+| `notes` | No | Human-readable description | `"PRIMARY (FREE)"` |
+
+### API Type Detection
+
+The system automatically detects API format using this logic:
+
+1. **Explicit**: If `api_type` is set in config, use it
+2. **By Name**: 
+   - `"ollama"` → Ollama format
+   - `"lm_studio"`, `"openai"`, `"anthropic"`, `"groq"` → OpenAI format
+3. **Default**: Unknown providers default to OpenAI format (more common)
+
+### Authentication
+
+#### Direct API Key
+```json
+{
+  "provider": "openai",
+  "api_key": "sk-proj-abc123..."
+}
+```
+
+#### Environment Variable
+```json
+{
+  "provider": "openai",
+  "api_key": "${OPENAI_API_KEY}"
+}
+```
+
+Set the environment variable:
+```bash
+export OPENAI_API_KEY="sk-proj-abc123..."
+```
+
+### Adding Custom Providers
+
+To add a custom OpenAI-compatible provider:
+
+```json
+{
+  "provider": "my_custom_api",
+  "api_type": "openai",
+  "base_url": "https://my-api.example.com/v1",
+  "api_key": "${MY_API_KEY}",
+  "models": ["custom-model-v1"],
+  "priority": 3,
+  "enabled": true,
+  "notes": "Custom cloud endpoint"
+}
+```
+
+### Priority and Failover
+
+- **Lower priority number = higher priority** (priority 1 is tried first)
+- System tries providers in priority order until one succeeds
+- Disabled providers are skipped
+- Unhealthy providers trigger automatic failover to next priority
+
+**Example Priority Strategy:**
+- Priority 1: Local Ollama (free, private)
+- Priority 2: Local LM Studio (free, private)
+- Priority 3: Custom cloud API (paid, fast)
+- Priority 99: OpenAI/Anthropic (paid, most capable, disabled by default)
 
 ---
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -33,16 +34,19 @@ class ProviderConfig:
     priority: int = 1
     enabled: bool = True
     model: Optional[str] = None
+    api_type: Optional[str] = None  # 'ollama', 'openai', or None (auto-detect)
+    api_key: Optional[str] = None  # API key or ${ENV_VAR} for expansion
 
 
 class LocalLLMClient:
     """
-    Multi-provider local LLM client with priority + failover.
+    Multi-provider LLM client with priority-based failover.
 
-    Supports: Ollama / LM Studio
+    Supports: Any OpenAI-compatible API (Ollama, LM Studio, OpenAI, Anthropic, custom endpoints)
     - Reads from config/llm_providers.json
+    - Auto-detects API format (Ollama vs OpenAI-compatible)
     - Auto-selects priority-based available provider
-    - Fallback chain: Ollama → LM Studio → None
+    - Supports both local and cloud providers with authentication
 
     Minimal Interface:
     - is_available() -> bool
@@ -79,27 +83,28 @@ class LocalLLMClient:
         """
         Generate text using the active provider.
 
-        Unified interface that routes to:
-        - Ollama → _generate_ollama()
-        - LM Studio → _generate_lm_studio()
+        Automatically detects API format and routes to appropriate implementation:
+        - Ollama format → _generate_ollama()
+        - OpenAI-compatible format → _generate_openai()
 
         Args:
             prompt: User prompt
             system_prompt: Optional system context
 
         Returns:
-            Generated text or None if all providers fail
+            Generated text or None if generation fails
         """
         if not self.active:
             return None
 
-        if self.active.provider == "ollama":
+        # Detect and cache API type for this provider
+        if not hasattr(self.active, '_detected_api_type'):
+            self.active._detected_api_type = self._detect_api_type(self.active)
+
+        if self.active._detected_api_type == "ollama":
             return self._generate_ollama(prompt, system_prompt)
-        elif self.active.provider == "lm_studio":
-            return self._generate_lm_studio(prompt, system_prompt)
-        else:
-            logger.error(f"Unsupported provider: {self.active.provider}")
-            return None
+        else:  # openai format
+            return self._generate_openai(prompt, system_prompt)
 
     def get_usage_stats(self) -> Dict[str, Any]:
         """Get usage statistics across all requests"""
@@ -133,11 +138,10 @@ class LocalLLMClient:
 
             for item in items:
                 provider_name = item.get("provider")
-
-                # Only load local providers (skip OpenAI, Anthropic, etc.)
-                if provider_name not in ["ollama", "lm_studio"]:
+                if not provider_name:
                     continue
 
+                # Load all enabled providers (no filtering by type)
                 self.providers.append(
                     ProviderConfig(
                         provider=item["provider"],
@@ -150,6 +154,8 @@ class LocalLLMClient:
                             if isinstance(item.get("models"), list)
                             else None
                         ),
+                        api_type=item.get("api_type"),
+                        api_key=item.get("api_key"),
                     )
                 )
 
@@ -185,6 +191,72 @@ class LocalLLMClient:
         logger.warning("[LocalLLM] No available LLM providers found")
         self.active = None
 
+    def _resolve_api_key(self, provider: ProviderConfig) -> Optional[str]:
+        """
+        Resolve API key from config or environment variable.
+        
+        Supports:
+        - Direct key: "api_key": "sk-..."
+        - Env var expansion: "api_key": "${OPENAI_API_KEY}"
+        
+        Args:
+            provider: Provider configuration
+            
+        Returns:
+            Resolved API key or None
+        """
+        if not provider.api_key:
+            return None
+        
+        # Check for environment variable expansion
+        if provider.api_key.startswith("${") and provider.api_key.endswith("}"):
+            var_name = provider.api_key[2:-1]
+            api_key = os.getenv(var_name)
+            if not api_key:
+                logger.warning(
+                    f"Environment variable {var_name} not set for provider {provider.provider}"
+                )
+            return api_key
+        
+        # Direct API key
+        return provider.api_key
+
+    def _detect_api_type(self, provider: ProviderConfig) -> str:
+        """
+        Detect API format (Ollama vs OpenAI-compatible).
+        
+        Strategy:
+        1. If api_type explicitly set in config, use it
+        2. If provider name is 'ollama', assume Ollama format
+        3. If provider name contains 'studio' or is known cloud provider, assume OpenAI format
+        4. Otherwise, try OpenAI format first (more common), fallback to Ollama
+        
+        Args:
+            provider: Provider configuration
+            
+        Returns:
+            'ollama' or 'openai'
+        """
+        # Explicit api_type in config takes precedence
+        if provider.api_type:
+            return provider.api_type.lower()
+        
+        # Heuristic based on provider name
+        provider_lower = provider.provider.lower()
+        
+        if provider_lower == "ollama":
+            return "ollama"
+        
+        # Known OpenAI-compatible providers
+        if any(name in provider_lower for name in ["studio", "openai", "anthropic", "groq", "together", "replicate"]):
+            return "openai"
+        
+        # Default to OpenAI format (more common for cloud/custom endpoints)
+        logger.info(
+            f"Provider {provider.provider} API type not specified, defaulting to OpenAI-compatible format"
+        )
+        return "openai"
+
     def _check_provider_health(self, provider: ProviderConfig) -> bool:
         """
         Check if a specific provider is healthy and accessible.
@@ -197,21 +269,30 @@ class LocalLLMClient:
         """
         try:
             base_url = provider.base_url.rstrip("/")
+            api_type = self._detect_api_type(provider)
+            
+            # Prepare headers for authentication
+            headers = {}
+            api_key = self._resolve_api_key(provider)
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
 
-            if provider.provider == "ollama":
+            if api_type == "ollama":
                 # Ollama health check: GET /api/tags
-                resp = requests.get(f"{base_url}/api/tags", timeout=3)
+                resp = requests.get(f"{base_url}/api/tags", timeout=3, headers=headers)
                 return resp.status_code == 200
-
-            elif provider.provider == "lm_studio":
-                # LM Studio health check: GET /v1/models (OpenAI compatible)
-                resp = requests.get(f"{base_url}/v1/models", timeout=3)
-                return resp.status_code == 200
-
             else:
-                return False
+                # OpenAI-compatible health check: GET /v1/models
+                # Handle base_url that may or may not include /v1
+                if base_url.endswith("/v1"):
+                    health_url = f"{base_url}/models"
+                else:
+                    health_url = f"{base_url}/v1/models"
+                resp = requests.get(health_url, timeout=3, headers=headers)
+                return resp.status_code == 200
 
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Health check failed for {provider.provider}: {e}")
             return False
 
     # --------- Provider-specific generate implementations ---------
@@ -264,11 +345,13 @@ class LocalLLMClient:
             logger.error(f"Ollama generate error: {e}")
             return None
 
-    def _generate_lm_studio(
+    def _generate_openai(
         self, prompt: str, system_prompt: Optional[str]
     ) -> Optional[str]:
         """
-        Generate text using LM Studio API (OpenAI-compatible).
+        Generate text using OpenAI-compatible API.
+        
+        Supports: LM Studio, OpenAI, Anthropic, Groq, and any OpenAI-compatible endpoint.
 
         Args:
             prompt: User prompt
@@ -279,7 +362,11 @@ class LocalLLMClient:
         """
         try:
             base_url = self.active.base_url.rstrip("/")
-            url = f"{base_url}/v1/chat/completions"
+            # Handle base_url that may or may not include /v1
+            if base_url.endswith("/v1"):
+                url = f"{base_url}/chat/completions"
+            else:
+                url = f"{base_url}/v1/chat/completions"
 
             messages = []
             if system_prompt:
@@ -287,16 +374,24 @@ class LocalLLMClient:
             messages.append({"role": "user", "content": prompt})
 
             payload: Dict[str, Any] = {
-                "model": self.active.model or "qwen3:8b",
+                "model": self.active.model or "gpt-3.5-turbo",
                 "messages": messages,
                 "temperature": 0.1,  # Temperature controlled in code, not config (source of truth)
-                "max_tokens": 500,  # Max tokens for JSON response
+                "max_tokens": 1000,  # Sufficient for instruct models; use 2500+ for reasoning models
             }
 
-            resp = requests.post(url, json=payload, timeout=60)
+            # Add authentication header if API key is configured
+            headers = {}
+            api_key = self._resolve_api_key(self.active)
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
+
+            resp = requests.post(url, json=payload, headers=headers, timeout=60)
 
             if resp.status_code != 200:
-                logger.error(f"LM Studio error {resp.status_code}: {resp.text}")
+                logger.error(
+                    f"{self.active.provider} error {resp.status_code}: {resp.text}"
+                )
                 return None
 
             data = resp.json()
@@ -306,7 +401,7 @@ class LocalLLMClient:
             return text
 
         except Exception as e:
-            logger.error(f"LM Studio generate error: {e}")
+            logger.error(f"{self.active.provider} generate error: {e}")
             return None
 
     def _update_usage(self, prompt: str, text: str) -> None:
