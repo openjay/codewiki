@@ -170,10 +170,12 @@ class LifecycleClassifier:
             if think_end != -1:
                 cls_text = cls_text[think_end + 8:].strip()  # 8 = len("</think>")
             else:
-                # If only opening <think> tag, remove everything before it
+                # If only opening <think> tag, keep content AFTER it
+                # (JSON usually comes after <think> in truncated responses)
                 think_start = cls_text.find("<think>")
                 if think_start != -1:
-                    cls_text = cls_text[:think_start].strip()
+                    cls_text = cls_text[think_start + 7:].strip()  # +7 = len("<think>")
+                    logger.debug("Unclosed <think> tag found, keeping content after tag")
 
         # 1) Direct attempt
         try:
